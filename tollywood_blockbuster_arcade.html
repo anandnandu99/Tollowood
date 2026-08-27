@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tollywood Blockbuster Arcade - Next-Gen Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Orbitron:wght@700;900&family=Teko:wght@600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #12121a 0%, #060609 100%);
+        }
+
+        .font-mass { font-family: 'Teko', sans-serif; }
+        .font-scifi { font-family: 'Orbitron', sans-serif; }
+        .font-mythic { font-family: 'Cinzel', serif; }
+
+        canvas {
+            touch-action: none;
+        }
+
+        .scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+            background-size: 100% 3px, 4px 100%;
+            pointer-events: none;
+        }
+
+        .glass-card {
+            background: rgba(18, 18, 26, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .glass-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(245, 158, 11, 0.6);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes massPulse {
+            0% { transform: scale(0.85); opacity: 0; }
+            50% { transform: scale(1.15); opacity: 1; text-shadow: 0 0 25px currentColor; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .mass-banner {
+            animation: massPulse 0.35s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white flex flex-col justify-between selection:bg-amber-500 selection:text-black">
+
+<header class="w-full bg-neutral-950/95 border-b border-amber-500/30 px-4 py-3 flex justify-between items-center z-50 sticky top-0 shadow-xl shadow-black/80 backdrop-blur-md">
+    <div class="flex items-center space-x-2.5 cursor-pointer" onclick="showHub()">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-600/40">
+            <i class="fas fa-gamepad text-black text-lg"></i>
+        </div>
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="text-amber-400 text-2xl sm:text-3xl font-black font-mass tracking-widest uppercase leading-none">TOLLYWOOD ARCADE</span>
+                <span class="bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/40 font-mono font-bold tracking-wider">ULTRA HD</span>
+            </div>
+            <span class="text-[10px] text-neutral-400 font-mono block -mt-1">Physics &bull; Particle FX &bull; Mass Moments</span>
+        </div>
+    </div>
+    <div class="flex items-center space-x-2 sm:space-x-3">
+        <button id="soundToggle" onclick="toggleAudio()" class="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-700 flex items-center justify-center text-amber-400 hover:bg-neutral-800 transition shadow">
+            <i id="soundIcon" class="fas fa-volume-up"></i>
+        </button>
+        <button onclick="showHub()" id="backHubBtn" class="hidden text-xs bg-red-600 hover:bg-red-500 font-black px-3.5 py-2 rounded-lg uppercase tracking-wider transition shadow-lg flex items-center">
+            <i class="fas fa-th-large mr-1.5"></i> Hub
+        </button>
+    </div>
+</header>
+
+<!-- Main Interactive Content Container -->
+<main class="flex-1 flex flex-col justify-start items-center p-3 sm:p-5 max-w-6xl mx-auto w-full">
+
+    <div id="filterBar" class="w-full mb-4 flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1">
+        <button onclick="filterMovies('all')" class="filter-btn active px-4 py-1.5 rounded-full text-xs font-black bg-amber-500 text-black border border-amber-400 shadow-md">All 10 Hits</button>
+        <button onclick="filterMovies('mass')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-900 text-neutral-300 border border-neutral-800 hover:border-neutral-600">Mass Action</button>
+        <button onclick="filterMovies('scifi')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-900 text-neutral-300 border border-neutral-800 hover:border-neutral-600">Sci-Fi & Mythic</button>
+        <button onclick="filterMovies('heist')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-900 text-neutral-300 border border-neutral-800 hover:border-neutral-600">Heist & Comedy</button>
+        <button onclick="filterMovies('vigilante')" class="filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-neutral-900 text-neutral-300 border border-neutral-800 hover:border-neutral-600">Vigilante & Epic</button>
+    </div>
+
+    <!-- Movie Cards Selection Grid -->
+    <div id="hubSection" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 my-auto">
+
+        <!-- 1. Kalki 2898 AD -->
+        <div data-genre="scifi" onclick="launchGame('kalki')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-cyan-400 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800">CYBERPUNK SCI-FI</span>
+                    <i class="fas fa-satellite text-cyan-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-scifi font-black tracking-tight text-white mt-2 group-hover:text-cyan-400 transition">KALKI 2898 AD</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Steer Bujji with nitro thrusters, fire dual plasma lasers, and annihilate Complex drone squadrons.</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Thruster Shooter</span>
+                    <span class="bg-cyan-600 group-hover:bg-cyan-500 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Pushpa 2: The Rule -->
+        <div data-genre="mass" onclick="launchGame('pushpa')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-amber-500 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800">MASS ACTION</span>
+                    <i class="fas fa-axe text-amber-500"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mass tracking-wider text-amber-400 mt-2 group-hover:text-amber-300 transition">PUSHPA 2: THE RULE</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Drive the 3-lane sandalwood convoy, smash police jeeps with axe chops, and unleash "Thaggedhe Le" rage!</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Convoy Brawler</span>
+                    <span class="bg-amber-600 group-hover:bg-amber-500 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Devara: Part 1 -->
+        <div data-genre="mass" onclick="launchGame('devara')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-red-500 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-red-400 bg-red-950/80 px-2 py-0.5 rounded border border-red-800">COASTAL COMBAT</span>
+                    <i class="fas fa-water text-red-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mass tracking-widest text-red-500 mt-2 group-hover:text-red-400 transition">DEVARA: PART 1</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Defend the stormy rocky sea with dual-curved katar parries, water splashes, and oceanic blood trails.</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Dual-Blade Slasher</span>
+                    <span class="bg-red-600 group-hover:bg-red-500 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Salaar: Cease Fire -->
+        <div data-genre="mass" onclick="launchGame('salaar')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-neutral-400 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-neutral-300 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-700">BRUTAL BRAWLER</span>
+                    <i class="fas fa-fist-raised text-neutral-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mass tracking-wider text-neutral-100 mt-2 group-hover:text-amber-500 transition">SALAAR</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Unleash devastating heavy broadsword sweeps and industrial shockwaves against Khansaar's elite army.</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Heavy Impact Beat 'Em Up</span>
+                    <span class="bg-neutral-700 group-hover:bg-neutral-600 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Hanu-Man -->
+        <div data-genre="scifi" onclick="launchGame('hanuman')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-orange-500 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800">MYTHIC HERO</span>
+                    <i class="fas fa-sun text-orange-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mythic font-bold text-orange-400 mt-2 group-hover:text-orange-300 transition">HANU-MAN</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Solar double-jump, collect blessed sun gems, and unleash golden shockwave ground-pounds on high-tech drones.</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Solar Platformer</span>
+                    <span class="bg-orange-600 group-hover:bg-orange-500 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Lucky Baskhar -->
+        <div data-genre="heist" onclick="launchGame('baskhar')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-emerald-500 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">FINANCIAL HEIST</span>
+                    <i class="fas fa-money-bill-wave text-emerald-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mass tracking-wide text-emerald-400 mt-2 group-hover:text-emerald-300 transition">LUCKY BASKHAR</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Fabricate dummy loan vouchers, trade bull scrips, and manage vigilance heat before the CBI raids.</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Ledger Puzzle Sim</span>
+                    <span class="bg-emerald-600 group-hover:bg-emerald-500 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. They Call Him OG -->
+        <div data-genre="vigilante" onclick="launchGame('og')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-rose-500 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-rose-400 bg-rose-950/80 px-2 py-0.5 rounded border border-rose-800">UNDERWORLD ACTION</span>
+                    <i class="fas fa-bolt text-rose-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mass tracking-widest text-rose-500 mt-2 group-hover:text-rose-400 transition">THEY CALL HIM OG</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Fluid 360-degree katana slashes, slow-motion bullet deflection, and blood-soaked Mumbai syndicate showdowns.</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Katana Deflector</span>
+                    <span class="bg-rose-700 group-hover:bg-rose-600 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Tillu Square -->
+        <div data-genre="heist" onclick="launchGame('tillu')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-pink-500 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-pink-400 bg-pink-950/80 px-2 py-0.5 rounded border border-pink-800">CRIME COMEDY</span>
+                    <i class="fas fa-compact-disc text-pink-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mass tracking-wider text-pink-400 mt-2 group-hover:text-pink-300 transition">TILLU SQUARE</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">DJ Tillu's hyper club escape! Catch neon vinyls, drop sub-bass shockwaves, and evade undercover agents.</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Rhythm Runner</span>
+                    <span class="bg-pink-600 group-hover:bg-pink-500 text-white text-xs font-black px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. Saripodhaa Sanivaaram -->
+        <div data-genre="vigilante" onclick="launchGame('saripodhaa')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-yellow-500 cursor-pointer relative overflow-hidden group">
+            <div class="relative z-10 flex flex-col h-full">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-mono font-bold text-yellow-400 bg-yellow-950/80 px-2 py-0.5 rounded border border-yellow-800">SATURDAY RAGE</span>
+                    <i class="fas fa-calendar-check text-yellow-400"></i>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-mass tracking-wider text-yellow-400 mt-2 group-hover:text-yellow-300 transition">SARIPODHAA SANIVAARAM</h2>
+                <p class="text-xs text-neutral-400 mt-1 mb-3">Surya releases his 6 days of bottled anger in a 24-hour Saturday brawl with furious combo multipliers!</p>
+                <div class="mt-auto flex justify-between items-center pt-2 border-t border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 font-mono">Rage Timing Action</span>
+                    <span class="bg-yellow-600 group-hover:bg-yellow-500 text-black font-black text-xs px-3.5 py-1 rounded shadow">PLAY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. RRR: Fire & Water -->
+        <div data-genre="vigilante" onclick="launchGame('rrr')" class="movie-card glass-card rounded-xl p-4 border-l-4 border-l-orange-500 cursor-pointer relative overflow-hidden group sm:col-span-2 lg:col-span-3">
+            <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <div>
+                    <span class="text-[10px] font-mono font-bold text-orange-400 bg-orange-950/80 px-2 py-0.5 rounded border border-orange-800">GLOBAL PHENOMENON</span>
+                    <h2 class="text-2xl sm:text-3xl font-mass tracking-widest text-orange-500 mt-1">RRR: FIRE & WATER RAMPAGE</h2>
+                    <p class="text-xs text-neutral-300 mt-0.5">Switch dynamically between Ram (Flaming Piercing Bow) and Bheem (Heavy Hydro Torques) to shatter the colonial fortress.</p>
+                </div>
+                <button class="mt-3 sm:mt-0 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-black text-sm px-6 py-3 rounded-lg uppercase tracking-wider shadow-lg shadow-orange-600/30">
+                    PLAY RRR DUO ASSAULT
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Active Game Screen Container -->
+    <div id="gameScreen" class="hidden w-full flex flex-col items-center justify-center my-auto">
+        
+        <!-- Game HUD & Top Bar -->
+        <div class="w-full max-w-xl flex justify-between items-center bg-neutral-950/90 border border-neutral-700 rounded-t-xl px-4 py-2.5 backdrop-blur-md">
+            <div>
+                <h3 id="gameTitle" class="text-xl font-black font-mass tracking-wider text-amber-400 uppercase leading-none">GAME TITLE</h3>
+                <span id="gameSub" class="text-[11px] text-neutral-400 block mt-0.5 font-mono">Controls instruction</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="text-right">
+                    <span class="text-[10px] uppercase text-neutral-400 block font-mono">Score</span>
+                    <span id="scoreDisplay" class="text-xl font-black font-mono text-amber-300 leading-none">0</span>
+                </div>
+                <button onclick="restartActiveGame()" class="text-xs bg-neutral-800 hover:bg-neutral-700 p-2.5 rounded-lg text-neutral-300 shadow">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Canvas Viewport with Effects Layer -->
+        <div id="viewportContainer" class="relative w-full max-w-xl aspect-[4/3] bg-black border-x border-neutral-700 overflow-hidden flex items-center justify-center shadow-2xl">
+            <canvas id="gameCanvas" width="480" height="360" class="w-full h-full block"></canvas>
+            <div class="scanlines absolute inset-0"></div>
+
+            <!-- Dynamic Mass Moment Banner -->
+            <div id="massBanner" class="hidden absolute top-12 px-6 py-2 rounded-xl bg-black/80 border-2 border-amber-400 font-mass text-2xl sm:text-3xl text-amber-300 font-black tracking-widest mass-banner z-20 pointer-events-none shadow-2xl shadow-amber-500/50">
+                THAGGEDHE LE!
+            </div>
+
+            <!-- Overlays: Game Over / Victory -->
+            <div id="overlayScreen" class="hidden absolute inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
+                <h2 id="overlayTitle" class="text-4xl font-black font-mass tracking-wider text-red-500 mb-1">MISSION FAILED</h2>
+                <p id="overlayMessage" class="text-xs text-neutral-300 mb-4 max-w-xs leading-relaxed">You got overwhelmed.</p>
+                <div class="text-center mb-5 bg-neutral-900/80 px-6 py-3 rounded-xl border border-neutral-800">
+                    <span class="text-[11px] text-neutral-400 uppercase tracking-widest font-mono">Final Score</span>
+                    <p id="overlayScore" class="text-4xl font-black text-amber-400 font-mono mt-0.5">0</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="restartActiveGame()" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-black px-6 py-2.5 rounded-lg text-sm uppercase tracking-wider shadow-lg shadow-amber-600/30">
+                        Try Again
+                    </button>
+                    <button onclick="showHub()" class="bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-bold px-5 py-2.5 rounded-lg text-sm uppercase tracking-wider border border-neutral-700">
+                        Hub Menu
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Touch Controls Bar -->
+        <div id="touchControls" class="w-full max-w-xl bg-neutral-950 border border-neutral-700 border-t-0 rounded-b-xl p-3 flex justify-between items-center select-none shadow-xl">
+            <!-- Left D-Pad -->
+            <div class="flex items-center space-x-2">
+                <button id="btnLeft" class="w-12 h-12 rounded-xl bg-neutral-800 active:bg-amber-600 border border-neutral-700 flex items-center justify-center text-xl text-neutral-200 transition shadow">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button id="btnRight" class="w-12 h-12 rounded-xl bg-neutral-800 active:bg-amber-600 border border-neutral-700 flex items-center justify-center text-xl text-neutral-200 transition shadow">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <!-- Middle Extra Action (Up/Down) -->
+            <div class="flex items-center space-x-2">
+                <button id="btnUp" class="w-11 h-12 rounded-xl bg-neutral-800 active:bg-amber-600 border border-neutral-700 flex items-center justify-center text-lg text-neutral-200 transition shadow">
+                    <i class="fas fa-chevron-up"></i>
+                </button>
+                <button id="btnDown" class="w-11 h-12 rounded-xl bg-neutral-800 active:bg-amber-600 border border-neutral-700 flex items-center justify-center text-lg text-neutral-200 transition shadow">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <!-- Right Action Buttons -->
+            <div class="flex items-center space-x-2">
+                <button id="btnAction1" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-red-700 to-red-500 active:scale-95 border border-red-400/50 flex items-center justify-center text-lg text-white font-black shadow-lg shadow-red-700/30">
+                    A
+                </button>
+                <button id="btnAction2" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 to-cyan-500 active:scale-95 border border-cyan-400/50 flex items-center justify-center text-lg text-white font-black shadow-lg shadow-cyan-700/30">
+                    B
+                </button>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer class="w-full text-center py-3 text-neutral-500 text-xs border-t border-neutral-900 bg-neutral-950/80 backdrop-blur-sm">
+    Tollywood Blockbuster Arcade &bull; 10 Playable Hit Movies &bull; Realistic Canvas Physics & FX Engine
+</footer>
+
+<script>
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function toggleAudio() {
+        soundEnabled = !soundEnabled;
+        document.getElementById('soundIcon').className = soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+        if (soundEnabled) initAudio();
+    }
+
+    // High-fidelity Multi-oscillator Sound Synthesizer
+    function playSound(type) {
+        if (!soundEnabled) return;
+        initAudio();
+        if (!audioCtx) return;
+
+        try {
+            const now = audioCtx.currentTime;
+
+            if (type === 'laser') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(1100, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.14);
+            } else if (type === 'heavy_impact') {
+                // Dual sub-bass + noise burst
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(25, now + 0.28);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.28);
+            } else if (type === 'metal_parry') {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc1.type = 'sine'; osc2.type = 'sawtooth';
+                osc1.frequency.setValueAtTime(1800, now);
+                osc2.frequency.setValueAtTime(2400, now);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc1.connect(gain); osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc1.start(now); osc2.start(now);
+                osc1.stop(now + 0.2); osc2.stop(now + 0.2);
+            } else if (type === 'mass_surge') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.35);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'cash') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987, now);
+                osc.frequency.setValueAtTime(1318, now + 0.08);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.22);
+            } else if (type === 'slash') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(750, now);
+                osc.frequency.exponentialRampToValueAtTime(90, now + 0.12);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+        } catch (e) {}
+    }
+
+    // Global FX Engine: Particles, Screen Shake, Mass Banners
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let currentGame = null;
+    let animationFrameId = null;
+    let gameScore = 0;
+    let isGameOver = false;
+    let screenShake = 0;
+    let particles = [];
+
+    class Particle {
+        constructor(x, y, vx, vy, color, size, life, shape = 'circle') {
+            this.x = x; this.y = y;
+            this.vx = vx; this.vy = vy;
+            this.color = color;
+            this.size = size;
+            this.maxLife = life;
+            this.life = life;
+            this.shape = shape;
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life--;
+            this.size *= 0.96;
+        }
+        render(ctx) {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+            ctx.fillStyle = this.color;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = this.color;
+            if (this.shape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, Math.max(1, this.size), 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
+            }
+            ctx.restore();
+        }
+    }
+
+    function addExplosion(x, y, color, count = 16, speed = 4) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const spd = (0.5 + Math.random()) * speed;
+            particles.push(new Particle(
+                x, y,
+                Math.cos(angle) * spd,
+                Math.sin(angle) * spd,
+                color,
+                3 + Math.random() * 4,
+                20 + Math.random() * 20
+            ));
+        }
+    }
+
+    function triggerScreenShake(intensity = 6) {
+        screenShake = intensity;
+    }
+
+    function showMassBanner(text, duration = 1200) {
+        const b = document.getElementById('massBanner');
+        b.innerText = text;
+        b.classList.remove('hidden');
+        playSound('mass_surge');
+        setTimeout(() => b.classList.add('hidden'), duration);
+    }
+
+    const keys = {
+        left: false, right: false, up: false, down: false,
+        action1: false, action2: false
+    };
+
+    function bindTouchBtn(elementId, keyProp) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const activate = (e) => { e.preventDefault(); keys[keyProp] = true; };
+        const deactivate = (e) => { e.preventDefault(); keys[keyProp] = false; };
+        el.addEventListener('touchstart', activate, {passive: false});
+        el.addEventListener('touchend', deactivate, {passive: false});
+        el.addEventListener('mousedown', activate);
+        el.addEventListener('mouseup', deactivate);
+        el.addEventListener('mouseleave', deactivate);
+    }
+
+    bindTouchBtn('btnLeft', 'left');
+    bindTouchBtn('btnRight', 'right');
+    bindTouchBtn('btnUp', 'up');
+    bindTouchBtn('btnDown', 'down');
+    bindTouchBtn('btnAction1', 'action1');
+    bindTouchBtn('btnAction2', 'action2');
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
+        if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
+        if (e.code === 'Space' || e.code === 'KeyJ') keys.action1 = true;
+        if (e.code === 'KeyK' || e.code === 'KeyX') keys.action2 = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
+        if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
+        if (e.code === 'Space' || e.code === 'KeyJ') keys.action1 = false;
+        if (e.code === 'KeyK' || e.code === 'KeyX') keys.action2 = false;
+    });
+
+    function filterMovies(genre) {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('bg-amber-500', 'text-black', 'border-amber-400');
+            btn.classList.add('bg-neutral-900', 'text-neutral-300', 'border-neutral-800');
+        });
+        event.target.classList.remove('bg-neutral-900', 'text-neutral-300', 'border-neutral-800');
+        event.target.classList.add('bg-amber-500', 'text-black', 'border-amber-400');
+
+        document.querySelectorAll('.movie-card').forEach(card => {
+            if (genre === 'all' || card.getAttribute('data-genre') === genre) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function showHub() {
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        document.getElementById('hubSection').classList.remove('hidden');
+        document.getElementById('filterBar').classList.remove('hidden');
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('backHubBtn').classList.add('hidden');
+        document.getElementById('overlayScreen').classList.add('hidden');
+        document.getElementById('massBanner').classList.add('hidden');
+        currentGame = null;
+    }
+
+    function triggerGameOver(msg) {
+        isGameOver = true;
+        playSound('heavy_impact');
+        triggerScreenShake(12);
+        document.getElementById('overlayTitle').innerText = "MISSION FAILED";
+        document.getElementById('overlayTitle').className = "text-4xl font-black font-mass tracking-wider text-red-500 mb-1";
+        document.getElementById('overlayMessage').innerText = msg || "You were defeated.";
+        document.getElementById('overlayScore').innerText = gameScore;
+        document.getElementById('overlayScreen').classList.remove('hidden');
+    }
+
+    function triggerVictory(msg) {
+        isGameOver = true;
+        playSound('mass_surge');
+        document.getElementById('overlayTitle').innerText = "MASS BLOCKBUSTER";
+        document.getElementById('overlayTitle').className = "text-4xl font-black font-mass tracking-wider text-amber-400 mb-1";
+        document.getElementById('overlayMessage').innerText = msg || "All enemies obliterated!";
+        document.getElementById('overlayScore').innerText = gameScore;
+        document.getElementById('overlayScreen').classList.remove('hidden');
+    }
+
+    function updateScore(val) {
+        gameScore = val;
+        document.getElementById('scoreDisplay').innerText = gameScore;
+    }
+
+
+    // 1. KALKI 2898 AD: High-Speed Bujji Wasteland Shooter
+    const KalkiGame = {
+        init() {
+            this.bujji = { x: 220, y: 280, vx: 0, speed: 6, maxTilt: 0 };
+            this.lasers = [];
+            this.enemies = [];
+            this.duneOffsets = [0, 100, 200, 300];
+            this.stars = Array.from({length: 45}, () => ({
+                x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: 2 + Math.random() * 5
+            }));
+            this.spawnTimer = 0;
+            this.shootCooldown = 0;
+            this.thrusterGlow = 0;
+        },
+        update() {
+            if (keys.left && this.bujji.x > 30) { this.bujji.vx = -this.bujji.speed; this.bujji.maxTilt = -0.15; }
+            else if (keys.right && this.bujji.x < canvas.width - 70) { this.bujji.vx = this.bujji.speed; this.bujji.maxTilt = 0.15; }
+            else { this.bujji.vx *= 0.8; this.bujji.maxTilt *= 0.8; }
+            this.bujji.x += this.bujji.vx;
+
+            // Thruster Exhaust Particles
+            particles.push(new Particle(this.bujji.x + 8, this.bujji.y + 40, (Math.random()-0.5)*2, 4 + Math.random()*3, '#00f0ff', 3, 12));
+            particles.push(new Particle(this.bujji.x + 32, this.bujji.y + 40, (Math.random()-0.5)*2, 4 + Math.random()*3, '#00f0ff', 3, 12));
+
+            if ((keys.action1 || keys.up) && this.shootCooldown <= 0) {
+                this.lasers.push({ x: this.bujji.x + 6, y: this.bujji.y, vy: -12, w: 4, h: 18 });
+                this.lasers.push({ x: this.bujji.x + 30, y: this.bujji.y, vy: -12, w: 4, h: 18 });
+                this.shootCooldown = 10;
+                playSound('laser');
+                triggerScreenShake(2);
+            }
+            if (this.shootCooldown > 0) this.shootCooldown--;
+
+            this.stars.forEach(s => { s.y += s.speed; if (s.y > canvas.height) s.y = 0; });
+
+            for (let i = this.lasers.length - 1; i >= 0; i--) {
+                const l = this.lasers[i];
+                l.y += l.vy;
+                if (l.y < -20) this.lasers.splice(i, 1);
+            }
+
+            this.spawnTimer++;
+            if (this.spawnTimer % 35 === 0) {
+                this.enemies.push({
+                    x: 40 + Math.random() * (canvas.width - 80),
+                    y: -40, w: 34, h: 30,
+                    speed: 2.5 + Math.random() * 2,
+                    hp: 2,
+                    type: Math.random() > 0.3 ? 'drone' : 'complex_skiff'
+                });
+            }
+
+            for (let i = this.enemies.length - 1; i >= 0; i--) {
+                const e = this.enemies[i];
+                e.y += e.speed;
+
+                // Bujji Collision
+                if (Math.abs(e.x - this.bujji.x) < 30 && Math.abs(e.y - this.bujji.y) < 30) {
+                    addExplosion(this.bujji.x + 20, this.bujji.y + 20, '#f97316', 25, 6);
+                    triggerGameOver("Bujji took critical damage from Complex drones!");
+                    return;
+                }
+
+                // Laser Hit
+                for (let j = this.lasers.length - 1; j >= 0; j--) {
+                    const l = this.lasers[j];
+                    if (l.x > e.x && l.x < e.x + e.w && l.y > e.y && l.y < e.y + e.h) {
+                        this.lasers.splice(j, 1);
+                        e.hp--;
+                        addExplosion(l.x, l.y, '#00f0ff', 6, 3);
+                        if (e.hp <= 0) {
+                            addExplosion(e.x + e.w/2, e.y + e.h/2, '#ec4899', 18, 5);
+                            this.enemies.splice(i, 1);
+                            updateScore(gameScore + 150);
+                            playSound('heavy_impact');
+                            triggerScreenShake(4);
+                            if (gameScore % 1000 === 0) showMassBanner("BUJJI HYPER-DRIVE!");
+                        }
+                        break;
+                    }
+                }
+                if (e && e.y > canvas.height + 30) this.enemies.splice(i, 1);
+            }
+        },
+        render() {
+            // Sci-fi Dystopian Background
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGrad.addColorStop(0, '#040714');
+            bgGrad.addColorStop(0.6, '#0f172a');
+            bgGrad.addColorStop(1, '#1e1b4b');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Cyber Neon Starfield & Grid Lines
+            ctx.fillStyle = '#38bdf8';
+            this.stars.forEach(s => ctx.fillRect(s.x, s.y, 2, 2));
+
+            // Lasers with Glow
+            ctx.save();
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#00f0ff';
+            ctx.fillStyle = '#38bdf8';
+            this.lasers.forEach(l => {
+                ctx.fillRect(l.x, l.y, l.w, l.h);
+            });
+            ctx.restore();
+
+            // Realistic Bujji Chassis
+            ctx.save();
+            ctx.translate(this.bujji.x + 20, this.bujji.y + 20);
+            ctx.rotate(this.bujji.maxTilt);
+            // Wheels
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-22, -10, 8, 32);
+            ctx.fillRect(14, -10, 8, 32);
+            // Armored Core
+            ctx.fillStyle = '#eab308';
+            ctx.beginPath();
+            ctx.roundRect(-14, -18, 28, 38, 6);
+            ctx.fill();
+            // Cockpit Sphere
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.arc(0, -2, 9, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath(); ctx.arc(0, -2, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+
+            // Complex Enemies
+            this.enemies.forEach(e => {
+                ctx.save();
+                ctx.fillStyle = '#7e22ce';
+                ctx.beginPath();
+                ctx.roundRect(e.x, e.y, e.w, e.h, 6);
+                ctx.fill();
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(e.x + 6, e.y + 8, e.w - 12, 5);
+                ctx.restore();
+            });
+        }
+    };
+
+    // 2. PUSHPA 2: Seshachalam Convoy & Heavy Axe Smash
+    const PushpaGame = {
+        init() {
+            this.lanes = [110, 240, 370];
+            this.currentLane = 1;
+            this.playerY = 270;
+            this.logs = [];
+            this.cops = [];
+            this.speed = 4.8;
+            this.spawnTimer = 0;
+            this.combo = 0;
+            this.axeSwing = 0;
+        },
+        update() {
+            if (keys.left && this.currentLane > 0 && !this.lP) {
+                this.currentLane--; this.lP = true; playSound('slash');
+                addExplosion(this.lanes[this.currentLane], this.playerY + 20, '#d97706', 6, 2);
+            }
+            if (!keys.left) this.lP = false;
+
+            if (keys.right && this.currentLane < 2 && !this.rP) {
+                this.currentLane++; this.rP = true; playSound('slash');
+                addExplosion(this.lanes[this.currentLane], this.playerY + 20, '#d97706', 6, 2);
+            }
+            if (!keys.right) this.rP = false;
+
+            // Axe Smash
+            if (keys.action1 && this.axeSwing <= 0) {
+                this.axeSwing = 16;
+                playSound('heavy_impact');
+                triggerScreenShake(5);
+                let smashed = false;
+
+                for (let i = this.cops.length - 1; i >= 0; i--) {
+                    const c = this.cops[i];
+                    if (c.lane === this.currentLane && Math.abs(c.y - this.playerY) < 70) {
+                        this.cops.splice(i, 1);
+                        updateScore(gameScore + 250);
+                        this.combo++;
+                        smashed = true;
+                        addExplosion(this.lanes[this.currentLane], c.y, '#ef4444', 22, 6);
+                        break;
+                    }
+                }
+                if (smashed && this.combo % 3 === 0) {
+                    showMassBanner("THAGGEDHE LE!");
+                }
+            }
+            if (this.axeSwing > 0) this.axeSwing--;
+
+            this.spawnTimer++;
+            if (this.spawnTimer % 40 === 0) {
+                const lane = Math.floor(Math.random() * 3);
+                if (Math.random() > 0.45) this.cops.push({ lane: lane, y: -50, hp: 1 });
+                else this.logs.push({ lane: lane, y: -50 });
+            }
+
+            // Roadway dust
+            particles.push(new Particle(this.lanes[this.currentLane] + (Math.random()-0.5)*20, this.playerY + 30, 0, 3, '#78350f', 3, 10));
+
+            for (let i = this.cops.length - 1; i >= 0; i--) {
+                const c = this.cops[i];
+                c.y += this.speed;
+                if (c.lane === this.currentLane && Math.abs(c.y - this.playerY) < 32 && this.axeSwing <= 0) {
+                    triggerGameOver("Pushpa's convoy was intercepted by the task force!");
+                    return;
+                }
+                if (c.y > canvas.height + 30) this.cops.splice(i, 1);
+            }
+
+            for (let i = this.logs.length - 1; i >= 0; i--) {
+                const l = this.logs[i];
+                l.y += this.speed;
+                if (l.lane === this.currentLane && Math.abs(l.y - this.playerY) < 35) {
+                    this.logs.splice(i, 1);
+                    updateScore(gameScore + 100);
+                    playSound('cash');
+                    addExplosion(this.lanes[this.currentLane], this.playerY, '#f59e0b', 12, 3);
+                } else if (l.y > canvas.height + 30) this.logs.splice(i, 1);
+            }
+        },
+        render() {
+            // Seshachalam Forest Highway
+            ctx.fillStyle = '#061a10';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Road
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(50, 0, 380, canvas.height);
+            // Lane dividers
+            ctx.strokeStyle = '#eab308';
+            ctx.setLineDash([20, 20]);
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(175, 0); ctx.lineTo(175, canvas.height);
+            ctx.moveTo(305, 0); ctx.lineTo(305, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Red Sandalwood Logs
+            this.logs.forEach(l => {
+                const x = this.lanes[l.lane];
+                ctx.fillStyle = '#7f1d1d';
+                ctx.beginPath();
+                ctx.roundRect(x - 20, l.y - 12, 40, 24, 6);
+                ctx.fill();
+                ctx.fillStyle = '#b91c1c';
+                ctx.fillRect(x - 14, l.y - 6, 28, 12);
+            });
+
+            // Police Barricade Vehicles
+            this.cops.forEach(c => {
+                const x = this.lanes[c.lane];
+                ctx.fillStyle = '#1e3a8a';
+                ctx.beginPath();
+                ctx.roundRect(x - 24, c.y - 14, 48, 28, 4);
+                ctx.fill();
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(x - 8, c.y - 4, 16, 8);
+            });
+
+            // Pushpa & Truck
+            const pX = this.lanes[this.currentLane];
+            ctx.fillStyle = '#b45309';
+            ctx.beginPath(); ctx.roundRect(pX - 22, this.playerY - 24, 44, 55, 6); ctx.fill();
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(pX - 10, this.playerY - 34, 20, 8); // Red cloth headband
+
+            // Axe Swing FX
+            if (this.axeSwing > 0) {
+                ctx.save();
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(pX, this.playerY, 50, -Math.PI/2, Math.PI/4);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+    };
+
+    // 3. DEVARA: Part 1 - Red Sea Storm & Katar Parry
+    const DevaraGame = {
+        init() {
+            this.playerX = 240;
+            this.waveTimer = 0;
+            this.pirates = [];
+            this.parryActive = false;
+            this.parryTimer = 0;
+            this.lightning = 0;
+        },
+        update() {
+            this.waveTimer += 0.08;
+            if (keys.left && this.playerX > 60) this.playerX -= 5.5;
+            if (keys.right && this.playerX < 420) this.playerX += 5.5;
+
+            if (keys.action1 && this.parryTimer <= 0) {
+                this.parryActive = true;
+                this.parryTimer = 22;
+                playSound('metal_parry');
+                triggerScreenShake(3);
+                // Water Splash
+                addExplosion(this.playerX, 280, '#38bdf8', 14, 4);
+            }
+            if (this.parryTimer > 0) {
+                this.parryTimer--;
+                if (this.parryTimer < 8) this.parryActive = false;
+            }
+
+            if (Math.random() < 0.015) this.lightning = 5;
+            if (this.lightning > 0) this.lightning--;
+
+            if (Math.random() < 0.04 && this.pirates.length < 5) {
+                const fromL = Math.random() > 0.5;
+                this.pirates.push({
+                    x: fromL ? 0 : canvas.width,
+                    y: 260,
+                    speed: (fromL ? 1 : -1) * (2.2 + Math.random() * 2)
+                });
+            }
+
+            for (let i = this.pirates.length - 1; i >= 0; i--) {
+                const p = this.pirates[i];
+                p.x += p.speed;
+                if (Math.abs(p.x - this.playerX) < 32) {
+                    if (this.parryActive) {
+                        this.pirates.splice(i, 1);
+                        updateScore(gameScore + 200);
+                        playSound('heavy_impact');
+                        triggerScreenShake(6);
+                        addExplosion(p.x, 260, '#ef4444', 20, 6);
+                        if (gameScore % 800 === 0) showMassBanner("ALL HAIL DEVARA!");
+                    } else {
+                        triggerGameOver("Devara was struck down in the midnight reef battle!");
+                        return;
+                    }
+                }
+            }
+        },
+        render() {
+            // Stormy Ocean Sky
+            ctx.fillStyle = this.lightning > 0 ? '#475569' : '#030712';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Red Sea Waves
+            for (let i = 0; i < canvas.width; i += 15) {
+                const waveY = 280 + Math.sin(this.waveTimer + i * 0.05) * 12;
+                ctx.fillStyle = '#450a0a';
+                ctx.fillRect(i, waveY, 16, canvas.height - waveY);
+                ctx.fillStyle = '#991b1b';
+                ctx.fillRect(i, waveY, 16, 4);
+            }
+
+            // Devara Figure with Dual Blades
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.roundRect(this.playerX - 14, 230, 28, 55, 4); ctx.fill();
+
+            // Glowing Dual Katars
+            ctx.save();
+            ctx.strokeStyle = this.parryActive ? '#ef4444' : '#e2e8f0';
+            ctx.shadowBlur = this.parryActive ? 14 : 4;
+            ctx.shadowColor = '#ef4444';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(this.playerX - 12, 245); ctx.lineTo(this.playerX - 32, 225);
+            ctx.moveTo(this.playerX + 12, 245); ctx.lineTo(this.playerX + 32, 225);
+            ctx.stroke();
+            ctx.restore();
+
+            // Coast Raiders
+            this.pirates.forEach(p => {
+                ctx.fillStyle = '#71717a';
+                ctx.fillRect(p.x - 12, 235, 24, 48);
+            });
+        }
+    };
+
+    // 4. SALAAR: Khansaar Heavy Impact Beat 'Em Up
+    const SalaarGame = {
+        init() {
+            this.playerX = 120;
+            this.isAttacking = false;
+            this.attackCooldown = 0;
+            this.enemies = [];
+            this.rage = 0;
+        },
+        update() {
+            if (keys.left && this.playerX > 40) this.playerX -= 4.5;
+            if (keys.right && this.playerX < 440) this.playerX += 4.5;
+
+            if (keys.action1 && this.attackCooldown <= 0) {
+                this.isAttacking = true;
+                this.attackCooldown = 18;
+                playSound('heavy_impact');
+                triggerScreenShake(7);
+                let hitCount = 0;
+
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const e = this.enemies[i];
+                    if (Math.abs(e.x - this.playerX) < 70) {
+                        this.enemies.splice(i, 1);
+                        hitCount++;
+                        updateScore(gameScore + 250);
+                        addExplosion(e.x, 260, '#f97316', 22, 6);
+                    }
+                }
+                if (hitCount > 0) {
+                    this.rage = Math.min(100, this.rage + 20);
+                    if (this.rage >= 80) showMassBanner("I AM CEASEFIRE!");
+                }
+            }
+            if (this.attackCooldown > 0) {
+                this.attackCooldown--;
+                if (this.attackCooldown < 8) this.isAttacking = false;
+            }
+
+            if (Math.random() < 0.035 && this.enemies.length < 5) {
+                this.enemies.push({ x: canvas.width + 30, speed: 2 + Math.random() * 1.5 });
+            }
+
+            for (let i = this.enemies.length - 1; i >= 0; i--) {
+                const e = this.enemies[i];
+                e.x -= e.speed;
+                if (Math.abs(e.x - this.playerX) < 22 && !this.isAttacking) {
+                    triggerGameOver("Deva was overwhelmed by Khansaar army clans!");
+                    return;
+                }
+            }
+        },
+        render() {
+            // Khansaar Dark Industrial Warzone
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Coal Dust Ground
+            ctx.fillStyle = '#262626';
+            ctx.fillRect(0, 280, canvas.width, 80);
+
+            // Salaar Figure
+            ctx.fillStyle = '#171717';
+            ctx.beginPath(); ctx.roundRect(this.playerX - 16, 220, 32, 65, 4); ctx.fill();
+
+            // Broadsword Swing Arc
+            if (this.isAttacking) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+                ctx.beginPath();
+                ctx.arc(this.playerX + 20, 250, 60, -Math.PI/3, Math.PI/3);
+                ctx.fill();
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Mercenaries
+            this.enemies.forEach(e => {
+                ctx.fillStyle = '#525252';
+                ctx.fillRect(e.x - 14, 225, 28, 55);
+            });
+        }
+    };
+
+    // 5. HANU-MAN: Solar Platformer & Shockwaves
+    const HanumanGame = {
+        init() {
+            this.y = 250; this.vy = 0;
+            this.isGrounded = true;
+            this.gems = []; this.drones = [];
+            this.timer = 0;
+        },
+        update() {
+            if ((keys.action1 || keys.up) && this.isGrounded) {
+                this.vy = -12.5;
+                this.isGrounded = false;
+                playSound('mass_surge');
+                addExplosion(95, this.y + 15, '#f59e0b', 12, 3);
+            }
+            this.y += this.vy;
+            this.vy += 0.65;
+            if (this.y >= 260) {
+                this.y = 260; this.vy = 0;
+                this.isGrounded = true;
+            }
+
+            this.timer++;
+            if (this.timer % 40 === 0) this.gems.push({ x: canvas.width + 20, y: 170 + Math.random() * 50 });
+            if (this.timer % 80 === 0) this.drones.push({ x: canvas.width + 20, y: 245 });
+
+            for (let i = this.gems.length - 1; i >= 0; i--) {
+                const g = this.gems[i];
+                g.x -= 4.2;
+                if (Math.abs(g.x - 95) < 25 && Math.abs(g.y - this.y) < 30) {
+                    this.gems.splice(i, 1);
+                    updateScore(gameScore + 100);
+                    playSound('cash');
+                    addExplosion(g.x, g.y, '#fde047', 10, 3);
+                } else if (g.x < -20) this.gems.splice(i, 1);
+            }
+
+            for (let i = this.drones.length - 1; i >= 0; i--) {
+                const d = this.drones[i];
+                d.x -= 4.8;
+                if (Math.abs(d.x - 95) < 24 && Math.abs(d.y - this.y) < 26) {
+                    triggerGameOver("Hanumanthu took a direct blast from Saurashtra tech drones!");
+                    return;
+                } else if (d.x < -30) this.drones.splice(i, 1);
+            }
+        },
+        render() {
+            const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            sky.addColorStop(0, '#ea580c');
+            sky.addColorStop(1, '#7c2d12');
+            ctx.fillStyle = sky;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Anjanadri Hills
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(0, 280, canvas.width, 80);
+
+            // Solar Prana Drops
+            this.gems.forEach(g => {
+                ctx.save();
+                ctx.fillStyle = '#fde047';
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#facc15';
+                ctx.beginPath(); ctx.arc(g.x, g.y, 9, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            });
+
+            // High-Tech Mercenary Drones
+            this.drones.forEach(d => {
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(d.x - 16, d.y - 12, 32, 24);
+                ctx.fillStyle = '#06b6d4';
+                ctx.fillRect(d.x - 8, d.y - 4, 16, 6);
+            });
+
+            // Hanu-Man Character
+            ctx.save();
+            ctx.fillStyle = '#f97316';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ea580c';
+            ctx.beginPath(); ctx.roundRect(85, this.y - 30, 26, 45, 6); ctx.fill();
+            ctx.restore();
+        }
+    };
+
+
+    // 6. LUCKY BASKHAR: Dalal Street Ledger Scam Sim
+    const BaskharGame = {
+        init() {
+            this.currentCash = 10000;
+            this.heat = 0;
+            this.timer = 600;
+            this.dealOptions = [
+                { name: 'Dalal St Bluechip Pump', profit: 18000, risk: 24 },
+                { name: 'Fabricate Loan Voucher', profit: 9000, risk: 10 },
+                { name: 'Bribe RBI Auditor', profit: -4500, risk: -25 }
+            ];
+            this.selectedIdx = 0;
+        },
+        update() {
+            this.timer--;
+            if (this.timer <= 0) {
+                triggerVictory(`Laundered ₹${this.currentCash.toLocaleString()} clean without CBI arrest!`);
+                return;
+            }
+            if (keys.up && !this.uP) { this.selectedIdx = (this.selectedIdx - 1 + 3) % 3; this.uP = true; playSound('slash'); }
+            if (!keys.up) this.uP = false;
+            if (keys.down && !this.dP) { this.selectedIdx = (this.selectedIdx + 1) % 3; this.dP = true; playSound('slash'); }
+            if (!keys.down) this.dP = false;
+
+            if (keys.action1 && !this.aP) {
+                this.aP = true;
+                const deal = this.dealOptions[this.selectedIdx];
+                this.currentCash += deal.profit;
+                this.heat = Math.max(0, this.heat + deal.risk);
+                updateScore(this.currentCash);
+                playSound(deal.profit > 0 ? 'cash' : 'heavy_impact');
+                if (this.heat >= 100) {
+                    triggerGameOver("CBI & Vigilance officers raided your accounts!");
+                    return;
+                }
+                if (this.currentCash > 80000) showMassBanner("BASKHAR IS THE BULL!");
+            }
+            if (!keys.action1) this.aP = false;
+        },
+        render() {
+            ctx.fillStyle = '#022c22';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = 'bold 15px Courier, monospace';
+            ctx.fillStyle = '#a7f3d0';
+            ctx.fillText(`DALAL STREET FINANCIAL LEDGER 1989`, 30, 40);
+            ctx.font = '13px Courier, monospace';
+            ctx.fillText(`TOTAL LIQUID ASSETS : ₹${this.currentCash.toLocaleString()}`, 30, 70);
+            ctx.fillText(`CBI VIGILANCE HEAT  : ${this.heat}%`, 30, 95);
+
+            // Heat meter bar
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(30, 105, 300, 10);
+            ctx.fillStyle = this.heat > 75 ? '#ef4444' : '#f59e0b';
+            ctx.fillRect(30, 105, this.heat * 3, 10);
+
+            this.dealOptions.forEach((d, i) => {
+                const isSel = i === this.selectedIdx;
+                ctx.fillStyle = isSel ? '#047857' : '#064e3b';
+                ctx.fillRect(30, 135 + i * 45, 420, 36);
+                ctx.fillStyle = isSel ? '#ffffff' : '#a7f3d0';
+                ctx.fillText(`${isSel ? '► ' : '  '}${d.name} (${d.profit >= 0 ? '+' : ''}₹${d.profit})`, 40, 158 + i * 45);
+            });
+        }
+    };
+
+    // 7. THEY CALL HIM OG: Katana Bullet Reflection
+    const OGGame = {
+        init() {
+            this.playerX = 240; this.playerY = 180;
+            this.enemies = []; this.bullets = []; this.slashCooldown = 0;
+        },
+        update() {
+            if (keys.left && this.playerX > 40) this.playerX -= 5;
+            if (keys.right && this.playerX < 440) this.playerX += 5;
+            if (keys.up && this.playerY > 40) this.playerY -= 5;
+            if (keys.down && this.playerY < 320) this.playerY += 5;
+
+            if (keys.action1 && this.slashCooldown <= 0) {
+                this.slashCooldown = 15;
+                playSound('slash');
+                triggerScreenShake(3);
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    const b = this.bullets[i];
+                    if (Math.abs(b.x - this.playerX) < 55 && Math.abs(b.y - this.playerY) < 55) {
+                        b.vx = -b.vx * 1.6; b.vy = -b.vy * 1.6; b.deflected = true;
+                        playSound('metal_parry');
+                        addExplosion(b.x, b.y, '#38bdf8', 12, 4);
+                    }
+                }
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const e = this.enemies[i];
+                    if (Math.abs(e.x - this.playerX) < 60 && Math.abs(e.y - this.playerY) < 60) {
+                        this.enemies.splice(i, 1);
+                        updateScore(gameScore + 300);
+                        playSound('heavy_impact');
+                        addExplosion(e.x, e.y, '#f43f5e', 22, 6);
+                    }
+                }
+            }
+            if (this.slashCooldown > 0) this.slashCooldown--;
+
+            if (Math.random() < 0.03 && this.enemies.length < 5) {
+                this.enemies.push({ x: Math.random() > 0.5 ? 20 : 460, y: 40 + Math.random() * 280, shootTimer: 0 });
+            }
+
+            this.enemies.forEach(e => {
+                e.shootTimer++;
+                if (e.shootTimer % 65 === 0) {
+                    const angle = Math.atan2(this.playerY - e.y, this.playerX - e.x);
+                    this.bullets.push({ x: e.x, y: e.y, vx: Math.cos(angle) * 4.2, vy: Math.sin(angle) * 4.2, deflected: false });
+                }
+            });
+
+            for (let i = this.bullets.length - 1; i >= 0; i--) {
+                const b = this.bullets[i];
+                b.x += b.vx; b.y += b.vy;
+                if (!b.deflected && Math.abs(b.x - this.playerX) < 14 && Math.abs(b.y - this.playerY) < 14) {
+                    triggerGameOver("OG was struck in the Mumbai syndicate clash!");
+                    return;
+                }
+                if (b.deflected) {
+                    for (let j = this.enemies.length - 1; j >= 0; j--) {
+                        const e = this.enemies[j];
+                        if (Math.abs(b.x - e.x) < 22 && Math.abs(b.y - e.y) < 22) {
+                            this.enemies.splice(j, 1);
+                            this.bullets.splice(i, 1);
+                            updateScore(gameScore + 500);
+                            addExplosion(e.x, e.y, '#ef4444', 20, 5);
+                            break;
+                        }
+                    }
+                }
+            }
+        },
+        render() {
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Bullets with trails
+            this.bullets.forEach(b => {
+                ctx.fillStyle = b.deflected ? '#38bdf8' : '#fb7185';
+                ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // Enemies
+            this.enemies.forEach(e => {
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath(); ctx.arc(e.x, e.y, 14, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // OG Character
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(this.playerX, this.playerY, 15, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#ffffff'; ctx.stroke();
+
+            // Katana Slash Glow
+            if (this.slashCooldown > 6) {
+                ctx.save();
+                ctx.strokeStyle = '#f43f5e';
+                ctx.shadowBlur = 14;
+                ctx.shadowColor = '#e11d48';
+                ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.arc(this.playerX, this.playerY, 45, 0, Math.PI * 2); ctx.stroke();
+                ctx.restore();
+            }
+        }
+    };
+
+    // 8. TILLU SQUARE: DJ Beat Escape
+    const TilluGame = {
+        init() {
+            this.tilluY = 250; this.vy = 0;
+            this.records = []; this.cops = []; this.discoTimer = 0;
+        },
+        update() {
+            if ((keys.action1 || keys.up) && this.tilluY >= 250) {
+                this.vy = -11.5;
+                playSound('mass_surge');
+            }
+            this.tilluY += this.vy;
+            this.vy += 0.58;
+            if (this.tilluY >= 250) { this.tilluY = 250; this.vy = 0; }
+
+            this.discoTimer++;
+            if (this.discoTimer % 40 === 0) this.records.push({ x: canvas.width + 20, y: 180 + Math.random() * 40 });
+            if (this.discoTimer % 80 === 0) this.cops.push({ x: canvas.width + 20, y: 245 });
+
+            for (let i = this.records.length - 1; i >= 0; i--) {
+                const r = this.records[i];
+                r.x -= 4.2;
+                if (Math.abs(r.x - 100) < 25 && Math.abs(r.y - this.tilluY) < 30) {
+                    this.records.splice(i, 1);
+                    updateScore(gameScore + 100);
+                    playSound('cash');
+                    addExplosion(r.x, r.y, '#f43f5e', 12, 3);
+                } else if (r.x < -20) this.records.splice(i, 1);
+            }
+
+            for (let i = this.cops.length - 1; i >= 0; i--) {
+                const c = this.cops[i];
+                c.x -= 4.8;
+                if (Math.abs(c.x - 100) < 24 && Math.abs(c.y - this.tilluY) < 26) {
+                    triggerGameOver("DJ Tillu got trapped by undercover agents!");
+                    return;
+                } else if (c.x < -20) this.cops.splice(i, 1);
+            }
+        },
+        render() {
+            ctx.fillStyle = '#1e1b4b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Strobe Club Floor
+            ctx.fillStyle = (Math.floor(this.discoTimer / 8) % 2 === 0) ? '#db2777' : '#9333ea';
+            ctx.fillRect(0, 275, canvas.width, 85);
+
+            // Vinyl Discs
+            this.records.forEach(r => {
+                ctx.fillStyle = '#fb7185';
+                ctx.beginPath(); ctx.arc(r.x, r.y, 10, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // Agents
+            this.cops.forEach(c => {
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(c.x - 12, c.y - 15, 24, 30);
+            });
+
+            // DJ Tillu (Iconic Mustard Jacket)
+            ctx.fillStyle = '#eab308';
+            ctx.beginPath(); ctx.roundRect(88, this.tilluY - 30, 24, 45, 4); ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.fillRect(92, this.tilluY - 36, 16, 6);
+        }
+    };
+
+    // 9. SARIPODHAA SANIVAARAM: Saturday Rage
+    const SaripodhaaGame = {
+        init() {
+            this.playerX = 240; this.rageCount = 0; this.thugs = []; this.comboTimer = 0;
+        },
+        update() {
+            if (keys.left && this.playerX > 50) this.playerX -= 4.5;
+            if (keys.right && this.playerX < 430) this.playerX += 4.5;
+
+            if (keys.action1 && this.comboTimer <= 0) {
+                this.comboTimer = 14;
+                playSound('heavy_impact');
+                triggerScreenShake(4);
+                for (let i = this.thugs.length - 1; i >= 0; i--) {
+                    const t = this.thugs[i];
+                    if (Math.abs(t.x - this.playerX) < 48) {
+                        this.thugs.splice(i, 1);
+                        this.rageCount++;
+                        updateScore(gameScore + 200);
+                        addExplosion(t.x, 240, '#eab308', 16, 4);
+                        if (this.rageCount % 5 === 0) showMassBanner("SATURDAY FURY!");
+                    }
+                }
+            }
+            if (this.comboTimer > 0) this.comboTimer--;
+
+            if (Math.random() < 0.04 && this.thugs.length < 5) {
+                const fromL = Math.random() > 0.5;
+                this.thugs.push({ x: fromL ? 0 : canvas.width, speed: (fromL ? 1 : -1) * (2 + Math.random() * 1.8) });
+            }
+
+            for (let i = this.thugs.length - 1; i >= 0; i--) {
+                const t = this.thugs[i];
+                t.x += t.speed;
+                if (Math.abs(t.x - this.playerX) < 20) {
+                    triggerGameOver("Saturday anger timer ran out!");
+                    return;
+                }
+            }
+        },
+        render() {
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#292524';
+            ctx.fillRect(0, 270, canvas.width, 90);
+
+            ctx.fillStyle = '#eab308';
+            ctx.font = 'bold 14px Teko, sans-serif';
+            ctx.fillText(`SATURDAY RAGE UNLEASHED: ${this.rageCount} TAKEDOWNS`, 30, 35);
+
+            // Surya
+            ctx.fillStyle = this.comboTimer > 6 ? '#ef4444' : '#f59e0b';
+            ctx.beginPath(); ctx.roundRect(this.playerX - 14, 225, 28, 55, 4); ctx.fill();
+
+            // Corrupt Thugs
+            this.thugs.forEach(t => {
+                ctx.fillStyle = '#71717a';
+                ctx.fillRect(t.x - 12, 230, 24, 50);
+            });
+        }
+    };
+
+    // 10. RRR: Fire & Water Duo Rampage
+    const RRRGame = {
+        init() {
+            this.currentHero = 'ram';
+            this.x = 240; this.projectiles = []; this.soldiers = [];
+            this.switchCooldown = 0; this.shootCooldown = 0;
+        },
+        update() {
+            if (keys.left && this.x > 40) this.x -= 4.8;
+            if (keys.right && this.x < 440) this.x += 4.8;
+
+            // Switch Hero with Action 2
+            if (keys.action2 && this.switchCooldown <= 0) {
+                this.currentHero = (this.currentHero === 'ram') ? 'bheem' : 'ram';
+                this.switchCooldown = 18;
+                playSound('mass_surge');
+                addExplosion(this.x, 260, this.currentHero === 'ram' ? '#f97316' : '#06b6d4', 20, 5);
+                showMassBanner(this.currentHero === 'ram' ? "ALLURI SITA RAMARAJU!" : "KOMARAM BHEEMUDO!");
+            }
+            if (this.switchCooldown > 0) this.switchCooldown--;
+
+            // Attack
+            if (keys.action1 && this.shootCooldown <= 0) {
+                this.shootCooldown = 12;
+                if (this.currentHero === 'ram') {
+                    this.projectiles.push({ x: this.x, y: 260, vy: -8, type: 'fire' });
+                    playSound('laser');
+                } else {
+                    this.projectiles.push({ x: this.x - 15, y: 260, vy: -7, type: 'water' });
+                    this.projectiles.push({ x: this.x + 15, y: 260, vy: -7, type: 'water' });
+                    playSound('slash');
+                }
+            }
+            if (this.shootCooldown > 0) this.shootCooldown--;
+
+            for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                const p = this.projectiles[i];
+                p.y += p.vy;
+                if (p.y < -10) this.projectiles.splice(i, 1);
+            }
+
+            if (Math.random() < 0.04 && this.soldiers.length < 5) {
+                this.soldiers.push({ x: 40 + Math.random() * 400, y: -20, speed: 2.2 + Math.random() * 1.5 });
+            }
+
+            for (let i = this.soldiers.length - 1; i >= 0; i--) {
+                const s = this.soldiers[i];
+                s.y += s.speed;
+                if (Math.abs(s.x - this.x) < 25 && Math.abs(s.y - 280) < 25) {
+                    triggerGameOver("Colonial forces breached the perimeter!");
+                    return;
+                }
+                for (let j = this.projectiles.length - 1; j >= 0; j--) {
+                    const p = this.projectiles[j];
+                    if (Math.abs(p.x - s.x) < 22 && Math.abs(p.y - s.y) < 22) {
+                        this.soldiers.splice(i, 1);
+                        this.projectiles.splice(j, 1);
+                        updateScore(gameScore + 150);
+                        playSound('heavy_impact');
+                        addExplosion(s.x, s.y, p.type === 'fire' ? '#f97316' : '#0284c7', 16, 4);
+                        break;
+                    }
+                }
+                if (s && s.y > canvas.height + 20) this.soldiers.splice(i, 1);
+            }
+        },
+        render() {
+            ctx.fillStyle = '#18181b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Projectiles with particle trails
+            this.projectiles.forEach(p => {
+                ctx.fillStyle = p.type === 'fire' ? '#f97316' : '#06b6d4';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // Soldiers
+            this.soldiers.forEach(s => {
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath(); ctx.roundRect(s.x - 12, s.y - 12, 24, 24, 4); ctx.fill();
+            });
+
+            // Active Hero
+            ctx.save();
+            ctx.fillStyle = this.currentHero === 'ram' ? '#f97316' : '#06b6d4';
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = this.currentHero === 'ram' ? '#ea580c' : '#0891b2';
+            ctx.beginPath(); ctx.roundRect(this.x - 14, 260, 28, 45, 6); ctx.fill();
+            ctx.restore();
+
+            ctx.font = 'bold 12px font-mono';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(`HERO: ${this.currentHero.toUpperCase()} (Press [B] to Switch)`, 30, 30);
+        }
+    };
+
+
+    const gamesMap = {
+        kalki: { engine: KalkiGame, title: "KALKI 2898 AD", sub: "[Left/Right] steer, [A] plasma lasers" },
+        pushpa: { engine: PushpaGame, title: "PUSHPA 2: THE RULE", sub: "[Left/Right] lanes, [A] axe roadblock smash" },
+        devara: { engine: DevaraGame, title: "DEVARA: PART 1", sub: "[Left/Right] move, [A] dual-sword parry" },
+        salaar: { engine: SalaarGame, title: "SALAAR: CEASE FIRE", sub: "[Left/Right] move, [A] heavy industrial sweep" },
+        hanuman: { engine: HanumanGame, title: "HANU-MAN", sub: "[A] or [Up] solar jump & smash drones" },
+        baskhar: { engine: BaskharGame, title: "LUCKY BASKHAR", sub: "[Up/Down] select deal, [A] execute transaction" },
+        og: { engine: OGGame, title: "THEY CALL HIM OG", sub: "360° move, [A] katana bullet reflection" },
+        tillu: { engine: TilluGame, title: "TILLU SQUARE", sub: "[A] or [Up] jump, grab vinyls & evade cops" },
+        saripodhaa: { engine: SaripodhaaGame, title: "SARIPODHAA SANIVAARAM", sub: "[Left/Right] move, [A] Saturday rage combo" },
+        rrr: { engine: RRRGame, title: "RRR: FIRE & WATER", sub: "[A] attack, [B] switch Ram & Bheem" }
+    };
+
+    function launchGame(gameKey) {
+        initAudio();
+        const config = gamesMap[gameKey];
+        if (!config) return;
+
+        currentGame = config.engine;
+        document.getElementById('hubSection').classList.add('hidden');
+        document.getElementById('filterBar').classList.add('hidden');
+        document.getElementById('gameScreen').classList.remove('hidden');
+        document.getElementById('backHubBtn').classList.remove('hidden');
+        document.getElementById('overlayScreen').classList.add('hidden');
+        document.getElementById('massBanner').classList.add('hidden');
+
+        document.getElementById('gameTitle').innerText = config.title;
+        document.getElementById('gameSub').innerText = config.sub;
+
+        gameScore = 0;
+        isGameOver = false;
+        particles = [];
+        updateScore(0);
+        currentGame.init();
+
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        gameLoop();
+    }
+
+    function restartActiveGame() {
+        document.getElementById('overlayScreen').classList.add('hidden');
+        document.getElementById('massBanner').classList.add('hidden');
+        gameScore = 0;
+        isGameOver = false;
+        particles = [];
+        updateScore(0);
+        if (currentGame) currentGame.init();
+    }
+
+    function gameLoop() {
+        if (!isGameOver && currentGame) {
+            currentGame.update();
+
+            // Screen Shake Offset
+            ctx.save();
+            if (screenShake > 0) {
+                const offsetX = (Math.random() - 0.5) * screenShake * 2;
+                const offsetY = (Math.random() - 0.5) * screenShake * 2;
+                ctx.translate(offsetX, offsetY);
+                screenShake *= 0.9;
+                if (screenShake < 0.5) screenShake = 0;
+            }
+
+            currentGame.render();
+
+            // Render Particle Engine
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.render(ctx);
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            ctx.restore();
+        }
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+</script>
+
+</body>
+</html>
